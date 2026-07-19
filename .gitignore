@@ -1,0 +1,22 @@
+# dependencies
+/node_modules
+
+# next.js build output
+/.next/
+/out/
+/build
+
+# env / secrets
+.env
+.env.*
+!.env.example
+
+# client demos — deliberately not published
+/public/demo/
+
+# debug / misc
+*.log
+.DS_Store
+*.pem
+*.tsbuildinfo
+next-env.d.ts
