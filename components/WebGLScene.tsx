@@ -17,7 +17,7 @@ export default function WebGLScene() {
     let cancelled = false;
     const load = () => {
       if (cancelled) return;
-      (new Function('u', 'return import(u)'))('/three-scene.js?v=20260711').catch((e: unknown) =>
+      (new Function('u', 'return import(u)'))('/three-scene.js?v=20260719').catch((e: unknown) =>
         console.warn('WebGL scene disabled:', e),
       );
     };

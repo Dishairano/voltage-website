@@ -179,7 +179,6 @@ a{color:var(--color-text-link)}
 .proof-section{background:linear-gradient(180deg,var(--color-bg-elevated) 0%,var(--color-bg-primary) 100%);overflow:hidden}
 .proof-section .eyebrow{color:var(--color-accent-text)}
 .proof-section .h2{color:#fff}
-.proof-glow{display:block;position:absolute;inset:0;pointer-events:none;background:radial-gradient(70vw 60vh at 50% 0%,rgba(63,110,233,.16),transparent 55%)}
 .proof-grid{display:grid;grid-template-columns:1fr 1.1fr;gap:var(--space-8);align-items:center;position:relative;z-index:2}
 .proof-copy p{margin-bottom:var(--space-4);color:var(--color-text-secondary)}
 .disclosure{color:var(--color-text-primary);border-left:3px solid var(--color-border-accent);padding-left:var(--space-4);font-size:var(--font-size-base)}
@@ -280,7 +279,6 @@ a{color:var(--color-text-link)}
 
 /* ---- founding (feature panel + accent backlight) ---- */
 .founding-section{background:var(--color-bg-footer);overflow:hidden;position:relative}
-.founding-section::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(60vw 50vh at 50% 0%,rgba(63,110,233,.14),transparent 58%)}
 .founding-card{position:relative;z-index:1;max-width:var(--max-width-wide);margin:0 auto;text-align:center;background:var(--color-bg-card);border:1px solid var(--color-border-primary);border-radius:var(--radius-xl);padding:clamp(36px,5vw,64px);box-shadow:var(--shadow-lg)}
 .founding-section .h2{color:#fff}
 .founding-section .lead{color:var(--color-text-secondary)}
@@ -465,59 +463,70 @@ main::before {
 }
 
 /* ---------- Per-section tinted translucent backgrounds ----------
-   Higher specificity than the base class rules in styles.css, so these win.
-   Each tint is the deep, professional cousin of that section's particle colour. */
-.section { background: transparent; position: relative; }
+   Each tint is the deep, professional cousin of that section's particle colour.
+   A section holds its own tint as a solid plateau, then over the last --fade px
+   morphs it straight into the NEXT section's tint — which that next section
+   starts on. Adjacent bands therefore share an identical colour at the
+   boundary: a real colour-to-colour fade, no seam, no dip.
+   Global plateau alpha + morph distance (not per-section) so every seam's two
+   sides share the same alpha and meet exactly — no visible step. */
+.section {
+  background: transparent;
+  position: relative;
+  --sec-a: 0.66;
+  --fade: 200px;
+  --next-tint: 3 4 8; /* no known successor -> resolve into the footer base */
+}
 
-/* Deep, desaturated cousin of each section's particle colour, painted as a
-   soft vertical wash that fades to transparent at the top & bottom edges — so
-   neighbouring bands melt into each other instead of hard-cutting. Lower
-   opacity + cooler, muted tones keep the colour story without the mud. */
+#promise       { --sec-tint: 13 17 40; }
+#straight-talk { --sec-tint: 8 22 34;  }
+#proof         { --sec-tint: 6 26 22;  }
+#build         { --sec-tint: 22 14 40; }
+#process       { --sec-tint: 10 18 42; }
+#guarantees    { --sec-tint: 6 26 18;  }
+#pricing       { --sec-tint: 28 23 9;  }
+#founder       { --sec-tint: 30 12 18; }
+#fit           { --sec-tint: 17 25 8;  }
+#founding      { --sec-tint: 28 21 8;  }
+#faq           { --sec-tint: 10 14 30; }
+#contact       { --sec-tint: 12 16 38; }
+
+/* Multi-page: the successor differs per page, so each band reads the tint of
+   whatever section actually follows it in THIS page's DOM. */
+.section:has(+ #promise)       { --next-tint: 13 17 40; }
+.section:has(+ #straight-talk) { --next-tint: 8 22 34;  }
+.section:has(+ #proof)         { --next-tint: 6 26 22;  }
+.section:has(+ #build)         { --next-tint: 22 14 40; }
+.section:has(+ #process)       { --next-tint: 10 18 42; }
+.section:has(+ #guarantees)    { --next-tint: 6 26 18;  }
+.section:has(+ #pricing)       { --next-tint: 28 23 9;  }
+.section:has(+ #founder)       { --next-tint: 30 12 18; }
+.section:has(+ #fit)           { --next-tint: 17 25 8;  }
+.section:has(+ #founding)      { --next-tint: 28 21 8;  }
+.section:has(+ #faq)           { --next-tint: 10 14 30; }
+.section:has(+ #contact)       { --next-tint: 12 16 38; }
+
 .section[id] {
-  --sec-a: 0.40;
-  background: linear-gradient(180deg,
-    transparent 0,
-    rgb(var(--sec-deep, 13 17 34) / var(--sec-a)) 17%,
-    rgb(var(--sec-deep, 13 17 34) / var(--sec-a)) 83%,
-    transparent 100%);
+  background: linear-gradient(
+    180deg,
+    rgb(var(--sec-tint, 13 17 34) / var(--sec-a))                     0,
+    rgb(var(--sec-tint, 13 17 34) / var(--sec-a))                     calc(100% - var(--fade)),
+    rgb(var(--next-tint) / var(--sec-a))                              100%
+  );
 }
-#promise       { --sec-deep: 15 20 44; }
-#straight-talk { --sec-deep: 11 24 38; }
-#proof         { --sec-deep: 9 27 26; }
-#build         { --sec-deep: 20 17 40; }
-#process       { --sec-deep: 12 20 44; }
-#guarantees    { --sec-deep: 9 27 22; }
-#pricing       { --sec-deep: 25 22 14; --sec-a: 0.34; }
-#founder       { --sec-deep: 27 16 22; --sec-a: 0.36; }
-#fit           { --sec-deep: 17 23 14; --sec-a: 0.34; }
-#founding      { --sec-deep: 25 20 13; --sec-a: 0.38; }
-#faq           { --sec-deep: 12 16 32; }
-#contact       { --sec-deep: 14 18 40; }
 
-/* No hard seam — the fading edges do the separating now. */
-
-/* Each section's own accent glow bleeding from the top — reinforces the colour story */
-.section::after {
-  content: "";
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 260px;
-  pointer-events: none;
-  opacity: 0.4;
-  background: radial-gradient(72% 150px at 50% 0, var(--sec-glow, transparent), transparent 72%);
+/* First band after the hero fades in from transparent instead of starting on a
+   solid plateau, so the colour story rises out of the bolt scene. */
+.hero + .section[id] {
+  background: linear-gradient(
+    180deg,
+    rgb(var(--sec-tint, 13 17 34) / 0)                                0,
+    rgb(var(--sec-tint, 13 17 34) / var(--sec-a))                     var(--fade),
+    rgb(var(--sec-tint, 13 17 34) / var(--sec-a))                     calc(100% - var(--fade)),
+    rgb(var(--next-tint) / var(--sec-a))                              100%
+  );
 }
-#promise       { --sec-glow: rgba(108, 140, 255, 0.16); }
-#straight-talk { --sec-glow: rgba(56, 189, 248, 0.16); }
-#proof         { --sec-glow: rgba(45, 212, 191, 0.16); }
-#build         { --sec-glow: rgba(167, 139, 250, 0.16); }
-#process       { --sec-glow: rgba(96, 165, 250, 0.16); }
-#guarantees    { --sec-glow: rgba(52, 211, 153, 0.16); }
-#pricing       { --sec-glow: rgba(251, 191, 36, 0.15); }
-#founder       { --sec-glow: rgba(251, 113, 133, 0.15); }
-#fit           { --sec-glow: rgba(163, 230, 53, 0.14); }
-#founding      { --sec-glow: rgba(240, 180, 41, 0.15); }
-#faq           { --sec-glow: rgba(92, 157, 255, 0.16); }
-#contact       { --sec-glow: rgba(108, 140, 255, 0.16); }
+/* No hairline seam — neighbouring bands share the exact boundary colour */
 
 /* ---------- Legibility: text blocks float on faint glass over the particles ---------- */
 .section .container > * { position: relative; z-index: 1; }
@@ -576,19 +585,9 @@ main::before {
    blur, more solid cards, calmer glow.
    ============================================================ */
 @media (max-width: 760px) {
-  /* Stronger section tints so text stays crisp over the particle field */
-  #promise       { background: rgba(13, 17, 40, 0.90); }
-  #straight-talk { background: rgba(8, 22, 34, 0.90); }
-  #proof         { background: rgba(6, 26, 22, 0.89); }
-  #build         { background: rgba(22, 14, 40, 0.90); }
-  #process       { background: rgba(10, 18, 42, 0.90); }
-  #guarantees    { background: rgba(6, 26, 18, 0.89); }
-  #pricing       { background: rgba(24, 20, 9, 0.89); }
-  #founder       { background: rgba(28, 12, 18, 0.89); }
-  #fit           { background: rgba(16, 23, 8, 0.88); }
-  #founding      { background: rgba(26, 20, 8, 0.89); }
-  #faq           { background: rgba(10, 14, 30, 0.90); }
-  #contact       { background: rgba(12, 16, 38, 0.92); }
+  /* Stronger tint plateau + shorter morph so text stays crisp over the particle
+     field. Alpha stays global so both sides of every seam still match exactly. */
+  .section { --fade: 110px; --sec-a: 0.90; }
 
   /* Solid, readable cards — drop backdrop-blur (janky + ugly on phones) */
   .promise-card, .founder-card, .founding-card,
@@ -602,8 +601,7 @@ main::before {
     box-shadow: 0 10px 28px -18px rgba(0, 0, 0, 0.75);
   }
 
-  /* Calmer accents: lighter top-glow, no pulsing featured card */
-  .section::after { opacity: 0.35; }
+  /* Calmer accents: no pulsing featured card */
   .price-featured { animation: none; box-shadow: 0 0 0 1px rgb(var(--sec-rgb) / 0.4), 0 14px 36px -18px rgb(var(--sec-rgb) / 0.5); }
   .btn-primary, .btn-gold, .nav-cta { box-shadow: 0 10px 26px -16px rgb(var(--sec-rgb) / 0.45); }
 

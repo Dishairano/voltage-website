@@ -81,7 +81,6 @@ export default function Home() {
 
       {/* THE PROOF */}
       <section className="section proof-section" id="proof">
-        <div className="proof-glow" aria-hidden="true"></div>
         <div className="container">
           <div className="section-head reveal">
             <p className="eyebrow mono">The proof, not the pitch</p>

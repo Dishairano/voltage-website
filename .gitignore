@@ -4,18 +4,20 @@
 # next.js build output
 /.next/
 /out/
+
+# production
 /build
 
-# env / secrets
+# debug / logs
+*.log
+npm-debug.log*
+
+# env (should any be added later)
 .env
 .env.*
 !.env.example
 
-# client demos — deliberately not published
-/public/demo/
-
-# debug / misc
-*.log
+# misc
 .DS_Store
 *.pem
 *.tsbuildinfo

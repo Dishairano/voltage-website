@@ -36,7 +36,7 @@ function init(canvas) {
   const rand = Math.random;
   const TAU = Math.PI * 2;
   const small = window.innerWidth < 760;
-  const COUNT = small ? 14000 : 32000;
+  const COUNT = small ? 14000 : 40000;
 
   /* ---------- Geometry samplers (each returns a Float32Array of COUNT*3) ---------- */
   function boxPoint(cx, cy, cz, w, h, d, out, o) {
@@ -77,6 +77,28 @@ function init(canvas) {
     }
     return out;
   }
+  // Fill several polygon rings at once. Even-odd across ALL rings combined =
+  // union of disjoint solid parts (and any holes cancel), so a multi-part logo
+  // like the Voltage "V" bolt samples correctly.
+  function multiPolyFill(rings, depthFrac, n) {
+    let minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity;
+    for (const r of rings) for (const p of r) {
+      if (p[0] < minx) minx = p[0]; if (p[0] > maxx) maxx = p[0];
+      if (p[1] < miny) miny = p[1]; if (p[1] > maxy) maxy = p[1];
+    }
+    const depth = Math.max(maxx - minx, maxy - miny) * depthFrac;
+    const out = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) {
+      let x, y, inside = false, guard = 0;
+      do {
+        x = minx + rand() * (maxx - minx); y = miny + rand() * (maxy - miny);
+        inside = false;
+        for (const r of rings) if (inPoly(x, y, r)) inside = !inside;
+      } while (!inside && ++guard < 80);
+      out[i * 3] = x; out[i * 3 + 1] = y; out[i * 3 + 2] = (rand() - 0.5) * depth;
+    }
+    return out;
+  }
   function triFill(tris, n) {
     const out = new Float32Array(n * 3);
     for (let i = 0; i < n; i++) {
@@ -92,8 +114,10 @@ function init(canvas) {
     const out = new Float32Array(COUNT * 3);
     switch (shape) {
       case 'bolt': {
-        const v = [[18, 2], [6, 18], [16, 18], [12, 30], [24, 14], [14, 14]];
-        return polyFill(v, 1.4, COUNT);
+        // Voltage "V" bolt monogram, vectorised from the brand logo (two solid
+        // rings: left stroke + right lightning bolt). y is world-up (upright).
+        const rings = [[[13.1,1416.7],[453,756.5],[330.1,750.5],[332.7,738.5],[635,341.9],[916,12.6],[826,322.1],[757,507.9],[351,1414.7],[14.5,1418.3]],[[1447.4,1284.6],[957.2,693.7],[958.4,685],[1096,679.8],[901,243.1],[908.4,241],[955,289.9],[1404,828.8],[1275,834.5],[1453.8,1278.5],[1451.3,1289]]];
+        return multiPolyFill(rings, 0.05, COUNT);
       }
       case 'star': {
         const v = [];
@@ -245,18 +269,28 @@ function init(canvas) {
         vec3 turb = vec3(sin(t), cos(t * 1.3), sin(t * 0.7)) * 0.16;
         vec3 pos = base + (aDir * 2.3 + turb) * uScatter;
         vColor = mix(uColorA, uColorB, uMorph);
-        vA = (1.0 - uScatter * 0.55) * 0.9;
+        // subtle per-particle brightness so the field reads as living dust,
+        // not a uniform grid of identical dots
+        float bright = 0.72 + aSeed * 0.55;
+        vA = (1.0 - uScatter * 0.55) * 0.9 * bright;
         vec4 mv = modelViewMatrix * vec4(pos, 1.0);
         gl_Position = projectionMatrix * mv;
-        gl_PointSize = uSize / max(-mv.z, 0.1);
+        // organic size variation + clamp so near particles never hit the GPU's
+        // point-size ceiling (which clips them into hard squares)
+        float sizeVar = 0.7 + aSeed * 0.75;
+        gl_PointSize = clamp((uSize * sizeVar) / max(-mv.z, 0.1), 1.0, 64.0);
       }`,
     fragmentShader: `
       varying vec3 vColor; varying float vA;
       uniform float uOpacity;
       void main() {
-        float d = length(gl_PointCoord - vec2(0.5));
-        if (d > 0.5) discard;
-        float a = smoothstep(0.5, 0.18, d) * vA * uOpacity;
+        // distance from sprite centre, 0 at core → 1 at rim
+        float d = length(gl_PointCoord - vec2(0.5)) * 2.0;
+        // gaussian core + soft halo, forced to exactly 0 at the rim: a clean,
+        // self-antialiased glowing orb with no hard clipped circle edge
+        float a = exp(-d * d * 4.0) * smoothstep(1.0, 0.72, d);
+        a *= vA * uOpacity;
+        if (a < 0.004) discard;
         gl_FragColor = vec4(vColor, a);
       }`,
   });

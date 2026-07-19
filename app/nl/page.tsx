@@ -84,7 +84,6 @@ export default function HomeNL() {
 
       {/* PROOF */}
       <section className="section proof-section" id="proof">
-        <div className="proof-glow" aria-hidden="true"></div>
         <div className="container">
           <div className="section-head reveal">
             <p className="eyebrow mono">Het bewijs, niet de pitch</p>

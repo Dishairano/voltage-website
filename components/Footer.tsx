@@ -8,8 +8,8 @@ const YEAR = new Date().getFullYear();
 function Logo() {
   return (
     <span className="nav-logo">
-      <svg className="logo-icon" width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-        <path d="M18 2L6 18h10l-4 12 12-16H14l4-12z" fill="#5C9DFF" />
+      <svg className="logo-icon" width="28" height="28" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+        <path d="M0.06,0.93 19.55,30.18 14.1,30.45 14.22,30.98 27.62,48.55 40.07,63.14 36.08,49.43 33.02,41.2 15.03,1.01 0.12,0.86 0.06,0.93ZM63.61,6.78 41.89,32.96 41.95,33.35 48.04,33.58 39.4,52.93 39.73,53.02 41.8,50.86 61.69,26.98 55.98,26.72 63.9,7.05 63.79,6.58 63.61,6.78Z" fill="#006FFF" />
       </svg>
       <span className="logo-text">Voltage<span className="logo-dim">Software</span></span>
     </span>
